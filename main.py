@@ -3,7 +3,11 @@ from kivy.uix.button import Button
 from kivy.base import runTouchApp
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
 from kivy.core.window import Window
+from kivy.app import App
+from kivy.uix.widget import Widget
 
 
 glitches_dropdown = DropDown()
@@ -20,7 +24,11 @@ item_placement_options = [
     ["basic", "Basic"],
     ["advanced", "Advanced"],
 ]
-item_placement_container = ["Item Placement", item_placement_dropdown, item_placement_options]
+item_placement_container = [
+    "Item Placement",
+    item_placement_dropdown,
+    item_placement_options,
+]
 
 shuffle_dropdown = DropDown()
 shuffle_options = [
@@ -37,7 +45,11 @@ accessibility_options = [
     ["100percentlocations", "100% Locations"],
     ["beatableonly", "Beatable Only"],
 ]
-accessibility_container = ["Accessibility", accessibility_dropdown, accessibility_options]
+accessibility_container = [
+    "Accessibility",
+    accessibility_dropdown,
+    accessibility_options,
+]
 
 goal_dropdown = DropDown()
 goal_options = [
@@ -77,7 +89,11 @@ ganon_vulnerable_options = [
     ["0", "0 Crystals"],
     ["random", "Random"],
 ]
-ganon_vulnerable_container = ["Ganon Vulnerable", ganon_vulnerable_dropdown, ganon_vulnerable_options]
+ganon_vulnerable_container = [
+    "Ganon Vulnerable",
+    ganon_vulnerable_dropdown,
+    ganon_vulnerable_options,
+]
 
 world_state_dropdown = DropDown()
 world_state_options = [
@@ -97,10 +113,19 @@ entrance_shuffle_options = [
     ["crossed", "Crossed"],
     ["insanity", "Insanity"],
 ]
-entrance_shuffle_container = ["Entrance Shuffle", entrance_shuffle_dropdown, entrance_shuffle_options]
+entrance_shuffle_container = [
+    "Entrance Shuffle",
+    entrance_shuffle_dropdown,
+    entrance_shuffle_options,
+]
 
 boss_shuffle_dropdown = DropDown()
-boss_shuffle_options = [["none", "None"], ["simple", "Simple"], ["full", "Full"], ["random", "Random"]]
+boss_shuffle_options = [
+    ["none", "None"],
+    ["simple", "Simple"],
+    ["full", "Full"],
+    ["random", "Random"],
+]
 boss_shuffle_container = ["Boss Shuffle", boss_shuffle_dropdown, boss_shuffle_options]
 
 enemy_shuffle_dropdown = DropDown()
@@ -109,7 +134,11 @@ enemy_shuffle_options = [
     ["shuffled", "Shuffled"],
     ["random", "Random"],
 ]
-enemy_shuffle_container = ["Enemy Shuffle", enemy_shuffle_dropdown, enemy_shuffle_options]
+enemy_shuffle_container = [
+    "Enemy Shuffle",
+    enemy_shuffle_dropdown,
+    enemy_shuffle_options,
+]
 
 hints_dropdown = DropDown()
 hints_options = [["on", "On"], ["off", "Off"]]
@@ -125,12 +154,21 @@ swords_options = [
 swords_container = ["Swords", swords_dropdown, swords_options]
 
 item_pool_dropdown = DropDown()
-item_pool_options = [["normal", "Normal"], ["hard", "Hard"], ["expert", "Expert"], ["crowdcontrol", "Crowd Control"]]
+item_pool_options = [
+    ["normal", "Normal"],
+    ["hard", "Hard"],
+    ["expert", "Expert"],
+    ["crowdcontrol", "Crowd Control"],
+]
 item_pool_container = ["Item Pool", item_pool_dropdown, item_pool_options]
 
 item_function_dropdown = DropDown()
 item_function_options = [["normal", "Normal"], ["hard", "Hard"], ["expert", "Expert"]]
-item_function_container = ["Item Function", item_function_dropdown, item_function_options]
+item_function_container = [
+    "Item Function",
+    item_function_dropdown,
+    item_function_options,
+]
 
 enemy_damage_dropdown = DropDown()
 enemy_damage_options = [
@@ -169,36 +207,68 @@ all_containers = [
     enemy_health_container,
 ]
 
-
-
-layout = GridLayout(cols=2)
-inner_grid = GridLayout(cols=1)
-layout.add_widget(inner_grid)
-
-
-root = ScrollView(size_hint=(1, None), size=(Window.width, Window.height))
-root.add_widget(layout)
-layout.bind(minimum_height=layout.setter('height'))
-
-# create a big main button
-
-# show the dropdown menu when the main button is released
-# note: all the bind() calls pass the instance of the caller (here, the
-# mainbutton instance) as the first argument of the callback (here,
-# dropdown.open.).
-
+root = ScrollView()
+inner_grid = GridLayout(cols=2)
+box_layout = BoxLayout(orientation="vertical")
+inner_grid.add_widget(box_layout)
 for name, dropdown, options in all_containers:
-  button = Button(text=name, size_hint=(None, None))
-  button.bind(on_release=dropdown.open)
-  dropdown.bind(on_select=lambda instance, x: setattr(button, "text", x)) 
-  for option in options:
-      print(option)
-      btn = Button(text=option[1], size_hint_y=None, height=44)
-      btn.bind(on_release=lambda btn: dropdown.select(btn.text))
-      dropdown.add_widget(btn)
-  inner_grid.add_widget(button)
-runTouchApp(root)
+    dropdown = DropDown()
+    button = Button(
+            text=name,
+            on_parent=lambda instance, x: dropdown.dismiss(),
+            on_release=lambda instance, x: dropdown.open(instance),
+        )
+    box_layout.add_widget(dropdown)
+    box_layout.add_widget(button)
+    label = Label(text=name, height=44, size_hint_y=None)
+    dropdown.add_widget(label)
+    for option in options:
+        option_button = Button(
+            text=option[1],
+            height=44,
+            on_release=lambda instance, x: dropdown.select(option[1]),
+        )
+        dropdown.add_widget(option_button)
+
+root.add_widget(inner_grid)
+
+# root = ScrollView(size_hint=(1, None), size=(Window.width, Window.height))
+##root.add_widget(layout)
+##layout.bind(minimum_height=layout.setter('height'))
+
+# # create a big main button
+
+# # show the dropdown menu when the main button is released
+# # note: all the bind() calls pass the instance of the caller (here, the
+# # mainbutton instance) as the first argument of the callback (here,
+# # dropdown.open.).
+
+# for name, dropdown, options in all_containers:
+#   button = Button(text=name, size_hint=(None, None))
+#   button.bind(on_release=dropdown.open)
+#   dropdown.bind(on_select=lambda instance, x: setattr(button, "text", x))
+#   for option in options:
+#       print(option)
+#       btn = Button(text=option[1], size_hint_y=None, height=44)
+#       btn.bind(on_release=lambda btn: dropdown.select(btn.text))
+#       dropdown.add_widget(btn)
+#   inner_grid.add_widget(button)
+
+
+# class CustomDropDown(DropDown):
+#     pass
+
+# dropdown = CustomDropDown()
+# mainbutton = Button(text='Hello', size_hint=(None, None))
+# mainbutton.bind(on_release=dropdown.open)
+# dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
+# #layout.add_widget(mainbutton)
+
 
 class AgaseedApp(App):
     def build(self):
         return root
+
+
+if __name__ == "__main__":
+    AgaseedApp().run()
