@@ -206,67 +206,37 @@ all_containers = [
     enemy_damage_container,
     enemy_health_container,
 ]
-
-root = ScrollView()
-inner_grid = GridLayout(cols=2)
-box_layout = BoxLayout(orientation="vertical")
-inner_grid.add_widget(box_layout)
-for name, dropdown, options in all_containers:
-    dropdown = DropDown()
-    button = Button(
-            text=name,
-            on_parent=lambda instance, x: dropdown.dismiss(),
-            on_release=lambda instance, x: dropdown.open(instance),
-        )
-    box_layout.add_widget(dropdown)
-    box_layout.add_widget(button)
-    label = Label(text=name, height=44, size_hint_y=None)
-    dropdown.add_widget(label)
-    for option in options:
-        option_button = Button(
-            text=option[1],
-            height=44,
-            on_release=lambda instance, x: dropdown.select(option[1]),
-        )
-        dropdown.add_widget(option_button)
-
-root.add_widget(inner_grid)
-
-# root = ScrollView(size_hint=(1, None), size=(Window.width, Window.height))
-##root.add_widget(layout)
-##layout.bind(minimum_height=layout.setter('height'))
-
-# # create a big main button
-
-# # show the dropdown menu when the main button is released
-# # note: all the bind() calls pass the instance of the caller (here, the
-# # mainbutton instance) as the first argument of the callback (here,
-# # dropdown.open.).
-
-# for name, dropdown, options in all_containers:
-#   button = Button(text=name, size_hint=(None, None))
-#   button.bind(on_release=dropdown.open)
-#   dropdown.bind(on_select=lambda instance, x: setattr(button, "text", x))
-#   for option in options:
-#       print(option)
-#       btn = Button(text=option[1], size_hint_y=None, height=44)
-#       btn.bind(on_release=lambda btn: dropdown.select(btn.text))
-#       dropdown.add_widget(btn)
-#   inner_grid.add_widget(button)
-
-
-# class CustomDropDown(DropDown):
-#     pass
-
-# dropdown = CustomDropDown()
-# mainbutton = Button(text='Hello', size_hint=(None, None))
-# mainbutton.bind(on_release=dropdown.open)
-# dropdown.bind(on_select=lambda instance, x: setattr(mainbutton, 'text', x))
-# #layout.add_widget(mainbutton)
-
+class Dropdowns(BoxLayout):
+    def __init__(self, name, options=[], *args, **kwargs):
+        super(Dropdowns, self).__init__(*args, **kwargs)
+        dropdown = DropDown()
+        self.add_widget(dropdown)
+        button = Button(text=name, size_hint=(None,None), on_release= lambda instance, x: dropdown.open())
+        self.add_widget(button)
+        for option in options:
+            option_button = Button(
+                    text=option[1],
+                    height=35,
+                    size_hint_y=None,
+                    on_release=lambda x: dropdown.select(option[1]),
+                )
+            dropdown.add_widget(option_button)
 
 class AgaseedApp(App):
     def build(self):
+        root = GridLayout(cols=2)
+        layout = BoxLayout(orientation='vertical', spacing=10)
+        layout.add_widget(Dropdowns("Glitches", glitches_options))
+        layout.add_widget(Dropdowns("Item Placement", item_placement_options))
+        layout.add_widget(Dropdowns("Glitches", glitches_options))
+        layout.add_widget(Dropdowns("Glitches", glitches_options))
+        layout.add_widget(Dropdowns("Glitches", glitches_options))
+        layout.add_widget(Dropdowns("Glitches", glitches_options))
+        layout.add_widget(Dropdowns("Glitches", glitches_options))
+        layout.add_widget(Dropdowns("Glitches", glitches_options))
+        layout.add_widget(Dropdowns("Glitches", glitches_options))
+        root.add_widget(layout)
+        root.add_widget(Button(text="right"))
         return root
 
 
