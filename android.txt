@@ -1,0 +1,3 @@
+title=agaseed
+author=Jay Shaffer
+orientation=landscape
