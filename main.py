@@ -281,8 +281,7 @@ class GenerateSeedButton(Button):
                 }
             }
         )
-        print(seed)
-        print(settings)
+        os.mkdir()
         await seed.create_patched_game(
             input_filename="dontsueme.sfc", # this should be an ALTTP Japan 1.0 ROM
             output_filename="output/output.sfc", # this is the output ROM
