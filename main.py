@@ -3,7 +3,6 @@ from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.core.window import Window
 from kivy.app import App
@@ -14,6 +13,25 @@ import json
 import asyncio
 import pyz3r
 import os
+import ssl
+import requests
+import certifi
+from kivy import platform
+
+os.environ["SSL_CERT_FILE"] = certifi.where()
+ssl.default_ca_certs = certifi.where()
+from kivy.config import Config
+
+# sending a get http request to specified url
+response = requests.request("GET", "https://www.alttpr.com/", verify=False)
+
+from android.permissions import request_permissions, Permission
+
+request_permissions(
+    [Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE]
+)
+
+Config.set("graphics", "resizable", "0")
 
 glitches_dropdown = DropDown()
 glitches_options = [
@@ -269,18 +287,20 @@ with open("sprites.json", "r") as file:
     data = json.load(file)
     sprites = data
 base_path = "/sdcard"
+if platform == "android":
+    from android.storage import primary_external_storage_path
+
+    base_path = os.path.join(primary_external_storage_path(), "roms")
+
+print("Base path: {}".format(base_path))
 debug_dir = "/Users/jayshaffer/dev/agaseed"
 agaseed_dir = "/agaseed_output"
 
 status_label = Label(
-    text="", 
-    size_hint_y=None, 
+    text="",
     size_hint_x=1,
-    height=50, 
     color=(0, 0, 0, 1),
-    pos=(1300, 400),
 )
-
 
 class GenerateSeedButton(Button):
     def on_release(self):
@@ -289,9 +309,6 @@ class GenerateSeedButton(Button):
             asyncio.create_task(self.generate_seed())
         except Exception as e:
             setattr(status_label, "text", "Something went wrong")
-
-        setattr(generate_button, "disabled", False)
-            
 
     async def generate_seed(self):
         output_dir = agaseed_dir
@@ -310,6 +327,7 @@ class GenerateSeedButton(Button):
                     output_path
                 )
             )
+            setattr(generate_button, "disabled", False)
             return
 
         setattr(status_label, "text", "Generating Seed")
@@ -348,16 +366,19 @@ class GenerateSeedButton(Button):
             )
         except Exception as e:
             setattr(status_label, "text", "Failed to generate seed: {}".format(e))
-            
+            setattr(generate_button, "disabled", False)
+            return
+
         if not os.path.isdir(output_path):
             os.mkdir(output_path)
 
         now = datetime.now()
-        rom_folder = os.path.join(output_path, "{}-{}".format(now.isoformat(), seed.hash))
+        rom_folder = os.path.join(
+            output_path, "{}-{}".format(now.isoformat(), seed.hash)
+        )
 
         if not os.path.isdir(rom_folder):
             os.mkdir(rom_folder)
-            
 
         print("DEBUG: rom folder for seed: {}".format(rom_folder))
         output_filename = os.path.join(rom_folder, "{}.sfc".format(seed.hash))
@@ -380,16 +401,16 @@ class GenerateSeedButton(Button):
                 menu_speed="normal",
                 msu1_resume=True,  # true or false, defaults true
             )
-        
+
         except Exception as e:
             setattr(status_label, "text", "Failed to patch seed: {}".format(e))
+            setattr(generate_button, "disabled", False)
             return
-        spoiler = seed.get_formatted_spoiler()
-        with open(os.path.join(rom_folder, "spoiler.json") , "w") as file:
+        with open(os.path.join(rom_folder, "spoiler.json"), "w") as file:
             file.write(json.dumps(seed.data["spoiler"], indent=4))
-            
+
         setattr(status_label, "text", "Seed saved to {}".format(rom_folder))
-        
+        setattr(generate_button, "disabled", False)
 
 
 class BorderedButton(Button):
@@ -442,7 +463,6 @@ class Dropdowns(BoxLayout):
         )
         self.add_widget(button)
         for option in options:
-            print(option)
             option_text = copy.copy(option[1])
             option_value = copy.copy(option[0])
             option_button = Button(
@@ -469,11 +489,13 @@ class Dropdowns(BoxLayout):
         print("dropdown text: {}".format(text))
         setattr(button, "text", text)
 
+
 generate_button = GenerateSeedButton(
-    text="Generate Seed", 
-    size_hint_y=None, 
-    pos=(1300, 900),
+    text="Generate Seed",
+    size_hint=(1, 0.2),
+    padding=(10, 10),
 )
+
 
 class AgaseedApp(App):
     def build(self):
@@ -484,7 +506,7 @@ class AgaseedApp(App):
             orientation="vertical",
             spacing=10,
             size_hint_y=None,
-            size=(Window.width, Window.height),
+            size=(Window.width, 4000),
         )
         layout.add_widget(
             Label(
@@ -569,13 +591,11 @@ class AgaseedApp(App):
         layout.add_widget(
             Dropdowns("enemy_health", "Enemy Health", enemy_health_options, "Default")
         )
-        right_layout = BoxLayout()
-        right_float = FloatLayout()
-        right_float.add_widget(generate_button)
-        right_float.add_widget(
-           status_label
+        right_layout = BoxLayout(
+            orientation="vertical", size=(Window.width, Window.height), padding=(30, 30)
         )
-        right_layout.add_widget(right_float)
+        right_layout.add_widget(generate_button)
+        right_layout.add_widget(status_label)
         scroll = ScrollView(size_hint=(1, None), size=(Window.width, Window.height))
         scroll.add_widget(layout)
         root.add_widget(scroll)
@@ -584,5 +604,6 @@ class AgaseedApp(App):
 
 
 if __name__ == "__main__":
+    print("Starting Agaseed")
     loop = asyncio.get_event_loop()
     loop.run_until_complete(AgaseedApp().async_run())

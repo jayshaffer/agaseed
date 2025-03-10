@@ -1,2 +1,2 @@
-asyncio==3.4.3
 pyz3r==6.1.0
+requests==2.32.3
